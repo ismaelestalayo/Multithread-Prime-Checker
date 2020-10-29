@@ -1,71 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Threading;
 using Windows.Foundation;
 using Windows.Storage;
 using Windows.Storage.Search;
-using Windows.System.Threading;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
-using System.Threading.Tasks;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Core;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 
 namespace Multithread_Prime {
 
 	public class QueueObj{
-        public Thread Thread { get; set; }
         public int Index { get; set; }
         public int TotalLines { get; set; }
         public int DoneLines { get; set; } = 0;
         public int Progress { get; set; } = 0;
         public string FilePath { get; set; } = "none";
-        public string[] Lines { get; set; }
     }
-
-	public class Statistics : Page, INotifyPropertyChanged {
-		private int _maxThreads = 2;
-		internal int MaxThreads {
-			get { return _maxThreads; }
-			set { _maxThreads = value; NotifyPropertyChangedAsync("MaxThreads"); }
-		}
-
-        private int _maxPrime = 0;
-        internal int MaxPrime {
-            get { return _maxPrime; }
-            set { _maxPrime = value; NotifyPropertyChangedAsync("MaxPrime"); }
-        }
-
-        private int _minPrime = 999999;
-        internal int MinPrime {
-            get { return _minPrime; }
-            set { _minPrime = value; NotifyPropertyChangedAsync("MinPrime"); }
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-		public async Task NotifyPropertyChangedAsync([CallerMemberName] string propertyName = "") {
-            if (PropertyChanged != null) {
-                await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => {
-                    PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-                });
-            }
-        }
-	}
 
 	public sealed partial class MainPage : Page {
 
-        // statistics to show
-        internal int DoneFiles = 0;
-        internal string LastFile = "";
-
+        // live statistics
         internal Statistics _statistics { get; set; } = new Statistics();
+        internal QueueObject qObj { get; set; } = new QueueObject();
+        internal DateTime StartTime;
 
+        internal ObservableCollection<QueueObj> queueObjs = new ObservableCollection<QueueObj>();
 
-        private Thread[] _workers;
-        private static ThreadPoolTimer PeriodicTimer;
 
         public MainPage() {
             this.InitializeComponent();
@@ -73,12 +36,19 @@ namespace Multithread_Prime {
             ApplicationView.GetForCurrentView().SetPreferredMinSize(new Size(400, 400));
             ApplicationView.PreferredLaunchViewSize = new Size(500, 500);
             ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.PreferredLaunchViewSize;
-
-            InitialFilesAccess();
         }
 
 
         // *******************************************************************
+        // Start button click
+        private void StartToggle_Click(object sender, RoutedEventArgs e) {
+            InitialFilesAccess();
+            StartToggle.IsEnabled = false;
+            StartTime = DateTime.Now;
+        }
+
+        // *******************************************************************
+        //
         private async void InitialFilesAccess() {
             string path = "C:\\Users\\ismae\\Desktop\\Practical.Work3\\rand_files";
             StorageFolder folder = await StorageFolder.GetFolderFromPathAsync(path);
@@ -86,22 +56,31 @@ namespace Multithread_Prime {
             IReadOnlyList<StorageFile> files = await folder.GetFilesAsync(CommonFileQuery.OrderByName, 0, 16);
 
 
-            PCQueue q = new PCQueue(2);
+            PCQueue q = new PCQueue(_statistics.MaxThreads);
 
 
             for (int i = 0; i < files.Count - 1; i++) {
-                int itemNumber = i;
+                int ii = i;
                 string text = await FileIO.ReadTextAsync(files[i]);
 
                 q.EnqueueItem(() => {
-                    Debug.WriteLine(string.Format("> FILE Nº{0} QUEUED", itemNumber));
-                    ProcessFileAsync(files[i].Path, text, itemNumber);
+                    Debug.WriteLine(string.Format("> FILE Nº{0} QUEUED", ii));
+                    ProcessFile(files[ii].Name, text, ii);
+                    queueObjs.Add(new QueueObj() {
+                        FilePath = "test",
+                        Index = 0,
+                        Progress = 20,
+                        TotalLines = 100,
+                        DoneLines = 20
+                    });
                 });
             }
 
+            for (int i = 0; i < _statistics.MaxThreads; i++) {
+                q.EnqueueItem(null);
+            }
 
-            q.Shutdown(true);
-            Debug.WriteLine("> Workers complete!");
+            q.Shutdown(false);
         }
 
 
@@ -121,34 +100,35 @@ namespace Multithread_Prime {
 
         // *******************************************************************
         // File handler and prime checker
-        private async Task ProcessFileAsync(string name, string text, int index) {
+        private void ProcessFile(string name, string text, int index) {
             string[] lines = text.Split('\n');
 
             Debug.WriteLine(string.Format(">>>>>>>>>>>>>> File {0} started", index));
-            for (int i = 0; i < 20 - 1; i++) { // lines.Length
+            for (int i = 0; i < 100 - 1; i++) { // lines.Length
                 int n = int.Parse(lines[i]);
                 bool prime = IsPrime(n);
 
 				if (prime) {
                     if (n > _statistics.MaxPrime) {
                         _statistics.MaxPrime = n;
-						//await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => {
-      //                      MaxTextBlock.Text = string.Format("Max: {0}", n);
-      //                  });
+                        Debug.WriteLine(string.Format("  - File {0} line {1}: {2} MAX", name, i, n));
                     }
                     if (n < _statistics.MinPrime) {
                         _statistics.MinPrime = n;
+                        Debug.WriteLine(string.Format("  - File {0} line {1}: {2} MIN", name, i, n));
                         //await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => {
                         //    MinTextBlock.Text = string.Format("Min: {0}", n);
                         //});
                     }
                 }
+                Thread.Sleep(10);
 				//thrObj.Progress = (int)(((float)thrObj.DoneLines / thrObj.TotalLines) * 100);
 
-				Debug.WriteLine(string.Format("  - File {0} line {1}: {2} prime: {3}", index, i, n, prime));
+				//Debug.WriteLine(string.Format("  - File {0} line {1}: {2} prime: {3}", index, i, n, prime));
             }
             Debug.WriteLine(string.Format("<<<<<<<<<<<<<< File {0} finished", index));
-            LastFile = name;
+            _statistics.LastFile = name;
+            _statistics.Processed += 1;
         }
 
         private bool IsPrime(int number) {
@@ -164,7 +144,7 @@ namespace Multithread_Prime {
 
             return isPrime;
         }
-    }
+	}
 
 }
 
