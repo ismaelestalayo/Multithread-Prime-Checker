@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
-using Windows.Storage;
 
 namespace Multithread_Prime {
 	class PCQueue {

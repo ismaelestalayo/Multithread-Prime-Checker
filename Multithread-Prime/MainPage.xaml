@@ -64,22 +64,25 @@
 				</TextBlock>
 
 				<TextBlock VerticalAlignment="Center" Style="{ThemeResource BodyTextBlockStyle}">
-					<Run Text="Last updated:"/>
+					<Run Text="Last updated:" Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"/>
 					<Run Text="{x:Bind _statistics.LastFile, Mode=OneWay}" d:Text="test.txt"/>
 				</TextBlock>
 
 				<TextBlock VerticalAlignment="Center" Style="{ThemeResource BodyTextBlockStyle}">
-					<Run Text="Processed:"/>
+					<Run Text="Processed:" Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"/>
 					<Run Text="{x:Bind _statistics.Processed, Mode=OneWay}" d:Text="test.txt"/>
 				</TextBlock>
 			</StackPanel>
 		</StackPanel>
 
-		<ListView x:Name="MainListView">
+		<ListView x:Name="MainListView"
+			Margin="15" Padding="10 5" ItemsSource="{x:Bind queueObjs}">
 			<ListView.ItemTemplate>
 				<DataTemplate x:DataType="local:QueueObj">
 					<StackPanel Background="{ThemeResource SystemControlPageBackgroundChromeLowBrush}"
-								Padding="5 0" MinWidth="250">
+						BorderThickness="0.5" CornerRadius="2"
+						BorderBrush="{ThemeResource ToggleButtonCheckedBorderThemeBrush}"
+						Padding="5 0" MinWidth="250">
 						<TextBlock Text="{x:Bind FilePath, Mode=OneWay}"/>
 						<TextBlock Text="{x:Bind DoneLines, Mode=OneWay}"/>
 						<TextBlock Text="{x:Bind TotalLines, Mode=OneWay}"/>

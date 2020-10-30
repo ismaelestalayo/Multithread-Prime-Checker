@@ -1,23 +1,45 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Storage;
 using Windows.Storage.Search;
+using Windows.UI.Core;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
 namespace Multithread_Prime {
 
-	public class QueueObj{
+	public class QueueObj : Page, INotifyPropertyChanged {
+        public bool Running { get; set; }
         public int Index { get; set; }
         public int TotalLines { get; set; }
-        public int DoneLines { get; set; } = 0;
-        public int Progress { get; set; } = 0;
-        public string FilePath { get; set; } = "none";
+        public int DoneLines { get; set; }
+        public int Progress { get; set; }
+
+        private string _filePath;
+        public string FilePath {
+            get { return _filePath; }
+            set { _filePath = value; NotifyPropertyChanged("FilePath"); }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        public void NotifyPropertyChanged([CallerMemberName] string propertyName = "") {
+            if (PropertyChanged != null) {
+                var _ = Dispatcher.RunAsync(CoreDispatcherPriority.High, () => {
+                    PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+                });
+            }
+                
+            
+		}
     }
 
 	public sealed partial class MainPage : Page {
@@ -58,26 +80,14 @@ namespace Multithread_Prime {
 
             PCQueue q = new PCQueue(_statistics.MaxThreads);
 
-
             for (int i = 0; i < files.Count - 1; i++) {
                 int ii = i;
-                string text = await FileIO.ReadTextAsync(files[i]);
+                string text = await FileIO.ReadTextAsync(files[ii]);
 
                 q.EnqueueItem(() => {
-                    Debug.WriteLine(string.Format("> FILE Nº{0} QUEUED", ii));
-                    ProcessFile(files[ii].Name, text, ii);
-                    queueObjs.Add(new QueueObj() {
-                        FilePath = "test",
-                        Index = 0,
-                        Progress = 20,
-                        TotalLines = 100,
-                        DoneLines = 20
-                    });
+                    Debug.WriteLine(string.Format("************** FILE Nº{0} QUEUED", ii));
+                    ProcessFile(files[ii].Name, text);
                 });
-            }
-
-            for (int i = 0; i < _statistics.MaxThreads; i++) {
-                q.EnqueueItem(null);
             }
 
             q.Shutdown(false);
@@ -100,34 +110,31 @@ namespace Multithread_Prime {
 
         // *******************************************************************
         // File handler and prime checker
-        private void ProcessFile(string name, string text, int index) {
+        private void ProcessFile(string fileName, string text) {
             string[] lines = text.Split('\n');
+            int totalLines = lines.Length;
 
-            Debug.WriteLine(string.Format(">>>>>>>>>>>>>> File {0} started", index));
-            for (int i = 0; i < 100 - 1; i++) { // lines.Length
+            Debug.WriteLine(string.Format(">>>>>>>>>>>>>> File {0} started", fileName));
+            for (int i = 0; i < totalLines - 1; i++) { // lines.Length
                 int n = int.Parse(lines[i]);
                 bool prime = IsPrime(n);
 
-				if (prime) {
+                if (prime) {
                     if (n > _statistics.MaxPrime) {
                         _statistics.MaxPrime = n;
-                        Debug.WriteLine(string.Format("  - File {0} line {1}: {2} MAX", name, i, n));
+                        Debug.WriteLine(string.Format("  - File {0} line {1}: {2} MAX", fileName, i, n));
                     }
                     if (n < _statistics.MinPrime) {
                         _statistics.MinPrime = n;
-                        Debug.WriteLine(string.Format("  - File {0} line {1}: {2} MIN", name, i, n));
-                        //await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => {
-                        //    MinTextBlock.Text = string.Format("Min: {0}", n);
-                        //});
+                        Debug.WriteLine(string.Format("  - File {0} line {1}: {2} MIN", fileName, i, n));
                     }
                 }
-                Thread.Sleep(10);
-				//thrObj.Progress = (int)(((float)thrObj.DoneLines / thrObj.TotalLines) * 100);
+                Thread.Sleep(50);
 
 				//Debug.WriteLine(string.Format("  - File {0} line {1}: {2} prime: {3}", index, i, n, prime));
             }
-            Debug.WriteLine(string.Format("<<<<<<<<<<<<<< File {0} finished", index));
-            _statistics.LastFile = name;
+            Debug.WriteLine(string.Format("<<<<<<<<<<<<<< File {0} finished", fileName));
+            _statistics.LastFile = fileName;
             _statistics.Processed += 1;
         }
 
