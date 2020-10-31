@@ -82,11 +82,18 @@
 					<StackPanel Background="{ThemeResource SystemControlPageBackgroundChromeLowBrush}"
 						BorderThickness="0.5" CornerRadius="2"
 						BorderBrush="{ThemeResource ToggleButtonCheckedBorderThemeBrush}"
-						Padding="5 0" MinWidth="250">
-						<TextBlock Text="{x:Bind FilePath, Mode=OneWay}"/>
-						<TextBlock Text="{x:Bind DoneLines, Mode=OneWay}"/>
-						<TextBlock Text="{x:Bind TotalLines, Mode=OneWay}"/>
-						<muxc:ProgressBar Width="130" Value="{x:Bind Progress}"/>
+						Padding="10 5" Margin="5" MinWidth="250">
+						<TextBlock>
+							<Run Text="File:" Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"/>
+							<Run Text="{x:Bind FilePath, Mode=OneWay}"/>
+						</TextBlock>
+						<TextBlock Margin="0 5">
+							<Run Text="Lines:" Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"/>
+							<Run Text="{x:Bind DoneLines, Mode=OneWay}"/>
+							<Run Text="/"/>
+							<Run Text="{x:Bind TotalLines, Mode=OneWay}"/>
+						</TextBlock>
+						<muxc:ProgressBar Height="10" Value="{x:Bind Progress, Mode=OneWay}"/>
 					</StackPanel>
 				</DataTemplate>
 			</ListView.ItemTemplate>
