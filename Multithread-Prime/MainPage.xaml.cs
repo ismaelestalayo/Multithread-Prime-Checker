@@ -4,58 +4,22 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Storage;
 using Windows.Storage.Search;
-using Windows.UI.Core;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
 namespace Multithread_Prime {
 
-	public class QueueObj : INotifyPropertyChanged {
-        public bool Running { get; set; } = false;
-        public int TotalLines { get; set; } = 0;
-
-        private int _doneLines = 0;
-        public int DoneLines {
-            get { return _doneLines; }
-            set { _doneLines = value; NotifyPropertyChanged("DoneLines"); }
-        }
-
-        private int _progress = 0;
-        public int Progress {
-            get { return _progress; }
-            set { _progress = value; NotifyPropertyChanged("Progress"); }
-        }
-
-        private string _filePath;
-        public string FilePath {
-            get { return _filePath; }
-            set { _filePath = value; NotifyPropertyChanged("FilePath"); }
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        public void NotifyPropertyChanged([CallerMemberName] string propertyName = "") {
-            if (PropertyChanged != null) {
-                DispatcherHelper.ExecuteOnUIThreadAsync<int>(() => {
-                    PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-                    return 1;
-                });
-            }
-		}
-    }
-
 	public sealed partial class MainPage : Page {
 
         // live statistics
         internal Statistics _statistics { get; set; } = new Statistics();
-        internal QueueObject qObj { get; set; } = new QueueObject();
+        internal QueueObj qObj { get; set; } = new QueueObj();
         internal DateTime StartTime;
 
         internal ObservableCollection<QueueObj> queueObjs = new ObservableCollection<QueueObj>();
