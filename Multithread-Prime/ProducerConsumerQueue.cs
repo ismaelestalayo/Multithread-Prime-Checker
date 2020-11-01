@@ -6,15 +6,19 @@ namespace Multithread_Prime {
 	class PCQueue {
 
         readonly object _locker = new object();
-        Thread[] _workers;
+        List<Thread> _workers;
         Queue<Action> _itemQ = new Queue<Action>();
 
         public PCQueue(int workerCount) {
-            _workers = new Thread[workerCount];
+            _workers = new List<Thread>(workerCount);
 
             // Create and start a separate thread for each worker
-            for (int i = 0; i < workerCount; i++)
-                (_workers[i] = new Thread(Consume)).Start();
+            for (int i = 0; i < workerCount; i++) {
+                _workers.Add(new Thread(Consume));
+                _workers[i].Start();
+            }
+                
+            //(_workers[i] = new Thread(Consume)).Start();
         }
 
         public void Shutdown(bool waitForWorkers) {
@@ -32,6 +36,21 @@ namespace Multithread_Prime {
             lock (_locker) {
                 _itemQ.Enqueue(item);           // We must pulse because we're
                 Monitor.Pulse(_locker);         // changing a blocking condition.
+            }
+        }
+
+        public void AddWorker() {
+            _workers.Add(new Thread(Consume));
+            _workers[_workers.Count - 1].Start();
+        }
+
+        public void RemoveWorker() {
+            lock (_locker) {
+                var items = _itemQ.ToArray();
+                _itemQ.Clear();
+                _itemQ.Enqueue(null);
+                foreach (var item in items)
+                    _itemQ.Enqueue(item);
             }
         }
 
