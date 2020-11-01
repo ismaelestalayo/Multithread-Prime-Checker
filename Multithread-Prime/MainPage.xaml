@@ -8,8 +8,7 @@
 	xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
-	Width="350"
-	Height="500">
+	MaxWidth="400">
 
 	<Page.Resources>
 		<Style TargetType="Button" BasedOn="{StaticResource ButtonRevealStyle}">
@@ -22,16 +21,20 @@
 		</Style>
 	</Page.Resources>
 
-	<StackPanel>
-		<StackPanel HorizontalAlignment="Center" Padding="0 30 0 0">
-			
+	<Grid VerticalAlignment="Top">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="auto"/>
+			<RowDefinition Height="*"/>
+		</Grid.RowDefinitions>
+		<StackPanel Grid.Row="0" HorizontalAlignment="Center" Padding="0 30 0 0">
+
 			<ToggleButton x:Name="StartToggle"
 				Click="StartToggle_Click"
 				Content="Start"
 				HorizontalAlignment="Center"
 				Padding="10 4"
 				Style="{StaticResource ToggleButtonRevealStyle}"/>
-			
+
 			<StackPanel
 				Orientation="Horizontal"
 				HorizontalAlignment="Center"
@@ -39,7 +42,7 @@
 				<Button Content="-" Click="DecreaseThreadPool"/>
 				<TextBlock VerticalAlignment="Center" Style="{ThemeResource SubtitleTextBlockStyle}">
 					<Run Text="Threads:"/>
-					<Run Text="{x:Bind _statistics.MaxThreads, Mode=OneWay}"
+					<Run Text="{x:Bind stats.MaxThreads, Mode=OneWay}"
 						 d:Text="0"/>
 				</TextBlock>
 				<Button Content="+" Click="IncreaseThreadPool"/>
@@ -52,52 +55,56 @@
 				MinWidth="300"
 				Margin="0" Padding="10 5">
 				<TextBlock Text="Stats" Style="{ThemeResource SubtitleTextBlockStyle}"/>
-				
+
 				<TextBlock VerticalAlignment="Center" Style="{ThemeResource BodyTextBlockStyle}">
 					<Run Text="Min. prime:" Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"/>
-					<Run Text="{x:Bind _statistics.MinPrime, Mode=OneWay}" d:Text="0"/>
+					<Run Text="{x:Bind stats.MinPrime, Mode=OneWay}" d:Text="0"/>
 				</TextBlock>
 
 				<TextBlock VerticalAlignment="Center" Style="{ThemeResource BodyTextBlockStyle}">
 					<Run Text="Max. prime:" Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"/>
-					<Run Text="{x:Bind _statistics.MaxPrime, Mode=OneWay}" d:Text="9"/>
+					<Run Text="{x:Bind stats.MaxPrime, Mode=OneWay}" d:Text="9"/>
 				</TextBlock>
 
 				<TextBlock VerticalAlignment="Center" Style="{ThemeResource BodyTextBlockStyle}">
 					<Run Text="Last updated:" Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"/>
-					<Run Text="{x:Bind _statistics.LastFile, Mode=OneWay}" d:Text="test.txt"/>
+					<Run Text="{x:Bind stats.LastFile, Mode=OneWay}" d:Text="test.txt"/>
 				</TextBlock>
 
 				<TextBlock VerticalAlignment="Center" Style="{ThemeResource BodyTextBlockStyle}">
 					<Run Text="Processed:" Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"/>
-					<Run Text="{x:Bind _statistics.Processed, Mode=OneWay}" d:Text="test.txt"/>
+					<Run Text="{x:Bind stats.Processed, Mode=OneWay}" d:Text="test.txt"/>
 				</TextBlock>
 			</StackPanel>
 		</StackPanel>
 
-		<ListView x:Name="MainListView"
+		<ScrollViewer Grid.Row="1">
+			<ListView x:Name="MainListView" HorizontalAlignment="Center"
 			Margin="15" Padding="10 5" ItemsSource="{x:Bind queueObjs}">
-			<ListView.ItemTemplate>
-				<DataTemplate x:DataType="local:QueueObj">
-					<StackPanel Background="{ThemeResource SystemControlPageBackgroundChromeLowBrush}"
+				<ListView.ItemTemplate>
+					<DataTemplate x:DataType="local:QueueObj">
+						<StackPanel Background="{ThemeResource SystemControlPageBackgroundChromeLowBrush}"
 						BorderThickness="0.5" CornerRadius="2"
 						BorderBrush="{ThemeResource ToggleButtonCheckedBorderThemeBrush}"
-						Padding="10 5" Margin="5" MinWidth="250">
-						<TextBlock>
+									
+						Padding="10 5" Margin="0 5" MinWidth="250">
+							<TextBlock>
 							<Run Text="File:" Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"/>
 							<Run Text="{x:Bind FilePath, Mode=OneWay}"/>
-						</TextBlock>
-						<TextBlock Margin="0 5">
+							</TextBlock>
+							<TextBlock Margin="0 5">
 							<Run Text="Lines:" Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"/>
 							<Run Text="{x:Bind DoneLines, Mode=OneWay}"/>
 							<Run Text="/"/>
 							<Run Text="{x:Bind TotalLines, Mode=OneWay}"/>
-						</TextBlock>
-						<muxc:ProgressBar Height="10" Value="{x:Bind Progress, Mode=OneWay}"/>
-					</StackPanel>
-				</DataTemplate>
-			</ListView.ItemTemplate>
-		</ListView>
+							</TextBlock>
+							<muxc:ProgressBar Height="10" Value="{x:Bind Progress, Mode=OneWay}"/>
+						</StackPanel>
+					</DataTemplate>
+				</ListView.ItemTemplate>
+			</ListView>
+		</ScrollViewer>
+		
 
-    </StackPanel>
+    </Grid>
 </Page>

@@ -18,9 +18,7 @@ namespace Multithread_Prime {
 	public sealed partial class MainPage : Page {
 
         // live statistics
-        internal Statistics _statistics { get; set; } = new Statistics();
-        internal QueueObj qObj { get; set; } = new QueueObj();
-        internal DateTime StartTime;
+        internal Statistics stats { get; set; } = new Statistics();
 
         internal ObservableCollection<QueueObj> queueObjs = new ObservableCollection<QueueObj>();
 
@@ -39,7 +37,6 @@ namespace Multithread_Prime {
         private void StartToggle_Click(object sender, RoutedEventArgs e) {
             InitialFilesAccess();
             StartToggle.IsEnabled = false;
-            StartTime = DateTime.Now;
         }
 
         // *******************************************************************
@@ -51,7 +48,7 @@ namespace Multithread_Prime {
             IReadOnlyList<StorageFile> files = await folder.GetFilesAsync(CommonFileQuery.OrderByName, 0, 30);
 
 
-            PCQueue q = new PCQueue(_statistics.MaxThreads);
+            PCQueue q = new PCQueue(stats.MaxThreads);
 
             for (int i = 0; i < files.Count - 1; i++) {
                 int ii = i;
@@ -70,12 +67,12 @@ namespace Multithread_Prime {
         // *******************************************************************
         // Alter the thread count
 		private void IncreaseThreadPool(object sender, RoutedEventArgs e) {
-            _statistics.MaxThreads += 1;
+            stats.MaxThreads += 1;
 		}
 
         private void DecreaseThreadPool(object sender, RoutedEventArgs e) {
-            if(_statistics.MaxThreads > 1) {
-                _statistics.MaxThreads -= 1;
+            if(stats.MaxThreads > 1) {
+                stats.MaxThreads -= 1;
             }
         }
 
@@ -110,12 +107,12 @@ namespace Multithread_Prime {
                 q.Progress = (int)(((float)q.DoneLines / totalLines) * 100);
 
                 if (prime) {
-                    if (n > _statistics.MaxPrime) {
-                        _statistics.MaxPrime = n;
+                    if (n > stats.MaxPrime) {
+                        stats.MaxPrime = n;
                         Debug.WriteLine(string.Format("  - File {0} line {1}: {2} MAX", fileName, i, n));
                     }
-                    if (n < _statistics.MinPrime) {
-                        _statistics.MinPrime = n;
+                    if (n < stats.MinPrime) {
+                        stats.MinPrime = n;
                         Debug.WriteLine(string.Format("  - File {0} line {1}: {2} MIN", fileName, i, n));
                     }
                 }
@@ -128,8 +125,8 @@ namespace Multithread_Prime {
                 queueObjs.Remove(q);
                 return 1;
             });
-            _statistics.LastFile = fileName;
-            _statistics.Processed += 1;
+            stats.LastFile = fileName;
+            stats.Processed += 1;
         }
 
         private bool IsPrime(int number) {
