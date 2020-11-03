@@ -1,4 +1,5 @@
-﻿using Microsoft.Toolkit.Uwp.Helpers;
+﻿using Microsoft.Toolkit.Extensions;
+using Microsoft.Toolkit.Uwp.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -18,7 +19,13 @@ namespace Multithread_Prime {
 
         // live statistics
         internal Statistics stats { get; set; } = new Statistics();
+        private DateTime StartTime, StopTime;
+        private int TotalFileNumber;
+        
+        // Queue of threads as a List<Thread> inside
         internal PCQueue queue;
+
+        // List of threads/files to keep track of progress
         internal ObservableCollection<QueueObj> queueObjs = new ObservableCollection<QueueObj>();
 
 
@@ -35,6 +42,7 @@ namespace Multithread_Prime {
         // Start button click
         private void StartToggle_Click(object sender, RoutedEventArgs e) {
             InitialFilesAccess();
+            StartTime = DateTime.Now;
         }
 
         // *******************************************************************
@@ -44,11 +52,12 @@ namespace Multithread_Prime {
 
 			try {
                 StorageFolder folder = await StorageFolder.GetFolderFromPathAsync(path);
-                IReadOnlyList<StorageFile> files = await folder.GetFilesAsync(CommonFileQuery.OrderByName, 0, 30);
+                IReadOnlyList<StorageFile> files = await folder.GetFilesAsync(CommonFileQuery.OrderByName, 0, 5);
+                TotalFileNumber = files.Count;
 
                 queue = new PCQueue(stats.MaxThreads);
 
-                for (int i = 0; i < files.Count - 1; i++) {
+                for (int i = 0; i < files.Count; i++) {
                     int ii = i;
                     string text = await FileIO.ReadTextAsync(files[ii]);
 
@@ -77,7 +86,8 @@ namespace Multithread_Prime {
         private void DecreaseThreadPool(object sender, RoutedEventArgs e) {
             if(stats.MaxThreads > 1) {
                 stats.MaxThreads -= 1;
-                queue.RemoveWorker();
+                if (queue != null)
+                    queue.RemoveWorker();
             }
         }
 
@@ -117,8 +127,9 @@ namespace Multithread_Prime {
                         Debug.WriteLine(string.Format("  - File {0} line {1}: {2} MIN", fileName, i, n));
                     }
                 }
-                Thread.Sleep(10);
+                //Thread.Sleep(10);
             }
+            
             Debug.WriteLine(string.Format("<<<<<<<<<<<<<< File {0} finished", fileName));
             DispatcherHelper.ExecuteOnUIThreadAsync<int>(() => {
                 queueObjs.Remove(q);
@@ -126,6 +137,26 @@ namespace Multithread_Prime {
             });
             stats.LastFile = fileName;
             stats.Processed += 1;
+
+            // If all files have been processed
+            if (stats.Processed == TotalFileNumber) {
+                StopTime = DateTime.Now;
+                TimeSpan offset = StopTime - StartTime;
+                DispatcherHelper.ExecuteOnUIThreadAsync<int>(() => {
+                    string message = string.Format("Start: {0} \n", StartTime);
+                    message += string.Format("Finish: {0} \n", StopTime);
+                    message += string.Format("Offset: {0} seconds\n", offset.TotalSeconds);
+                    var _ = new MessageDialog(
+                        message,
+                        string.Format("Processed {0} files with {1} threads", TotalFileNumber, stats.MaxThreads)
+                    ).ShowAsync();
+                    return 1;
+                });
+                for (int i = 0; i < stats.MaxThreads; i++)
+                    queue.RemoveWorker();
+
+            }
+                
         }
 
         private bool IsPrime(int number) {
