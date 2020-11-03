@@ -80,7 +80,7 @@
 
 		<ScrollViewer Grid.Row="1">
 			<ListView x:Name="MainListView" HorizontalAlignment="Center"
-			Margin="15" Padding="10 5" ItemsSource="{x:Bind queueObjs}">
+				Margin="15" Padding="10 5" ItemsSource="{x:Bind queueObjs}">
 				<ListView.ItemTemplate>
 					<DataTemplate x:DataType="local:QueueObj">
 						<StackPanel Background="{ThemeResource SystemControlPageBackgroundChromeLowBrush}"
@@ -89,14 +89,14 @@
 									
 						Padding="10 5" Margin="0 5" MinWidth="250">
 							<TextBlock>
-							<Run Text="File:" Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"/>
-							<Run Text="{x:Bind FilePath, Mode=OneWay}"/>
+								<Run Text="File:" Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"/>
+								<Run Text="{x:Bind FilePath, Mode=OneWay}"/>
 							</TextBlock>
 							<TextBlock Margin="0 5">
-							<Run Text="Lines:" Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"/>
-							<Run Text="{x:Bind DoneLines, Mode=OneWay}"/>
-							<Run Text="/"/>
-							<Run Text="{x:Bind TotalLines, Mode=OneWay}"/>
+								<Run Text="Lines:" Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"/>
+								<Run Text="{x:Bind DoneLines, Mode=OneWay}"/>
+								<Run Text="/"/>
+								<Run Text="{x:Bind TotalLines, Mode=OneWay}"/>
 							</TextBlock>
 							<muxc:ProgressBar Height="10" Value="{x:Bind Progress, Mode=OneWay}"/>
 						</StackPanel>
