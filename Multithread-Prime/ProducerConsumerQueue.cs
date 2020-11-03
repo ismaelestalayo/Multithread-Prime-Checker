@@ -46,11 +46,16 @@ namespace Multithread_Prime {
 
         public void RemoveWorker() {
             lock (_locker) {
-                var items = _itemQ.ToArray();
-                _itemQ.Clear();
-                _itemQ.Enqueue(null);
-                foreach (var item in items)
-                    _itemQ.Enqueue(item);
+                if (_itemQ.Count == 1) {
+                    _itemQ.Clear();
+                }
+                else {
+                    var items = _itemQ.ToArray();
+                    _itemQ.Clear();
+                    _itemQ.Enqueue(null);
+                    foreach (var item in items)
+                        _itemQ.Enqueue(item);
+                }
             }
         }
 
