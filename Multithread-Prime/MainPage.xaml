@@ -78,16 +78,15 @@
 			</StackPanel>
 		</StackPanel>
 
-		<ScrollViewer Grid.Row="1">
-			<ListView x:Name="MainListView" HorizontalAlignment="Center"
+		<ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden">
+			<ListView x:Name="MainListView" HorizontalAlignment="Center" VerticalAlignment="Top"
 				Margin="15" Padding="10 5" ItemsSource="{x:Bind queueObjs}">
-				<ListView.ItemTemplate>
+				<ListView.ItemTemplate>	
 					<DataTemplate x:DataType="local:QueueObj">
 						<StackPanel Background="{ThemeResource SystemControlPageBackgroundChromeLowBrush}"
-						BorderThickness="0.5" CornerRadius="2"
-						BorderBrush="{ThemeResource ToggleButtonCheckedBorderThemeBrush}"
-									
-						Padding="10 5" Margin="0 5" MinWidth="250">
+							BorderThickness="0.5" CornerRadius="2"
+							BorderBrush="{ThemeResource ToggleButtonCheckedBorderThemeBrush}"
+							Padding="10 5" Margin="0 5" MinWidth="250">
 							<TextBlock>
 								<Run Text="File:" Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"/>
 								<Run Text="{x:Bind FilePath, Mode=OneWay}"/>
