@@ -17,8 +17,6 @@ namespace Multithread_Prime {
                 _workers.Add(new Thread(Consume));
                 _workers[i].Start();
             }
-                
-            //(_workers[i] = new Thread(Consume)).Start();
         }
 
         public void Shutdown(bool waitForWorkers) {
@@ -45,17 +43,12 @@ namespace Multithread_Prime {
         }
 
         public void RemoveWorker() {
-            lock (_locker) {
-                if (_itemQ.Count == 1) {
-                    _itemQ.Clear();
-                }
-                else {
-                    var items = _itemQ.ToArray();
-                    _itemQ.Clear();
-                    _itemQ.Enqueue(null);
-                    foreach (var item in items)
-                        _itemQ.Enqueue(item);
-                }
+            lock (_locker) {                
+                var items = _itemQ.ToArray();
+                _itemQ.Clear();
+                _itemQ.Enqueue(null);
+                foreach (var item in items)
+                    _itemQ.Enqueue(item);
             }
         }
 
