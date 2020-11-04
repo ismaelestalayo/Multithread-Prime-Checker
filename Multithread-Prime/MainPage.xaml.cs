@@ -1,10 +1,8 @@
-﻿using Microsoft.Toolkit.Extensions;
-using Microsoft.Toolkit.Uwp.Helpers;
+﻿using Microsoft.Toolkit.Uwp.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Threading;
 using Windows.Foundation;
 using Windows.Storage;
 using Windows.Storage.Search;
@@ -52,11 +50,12 @@ namespace Multithread_Prime {
 
 			try {
                 StorageFolder folder = await StorageFolder.GetFolderFromPathAsync(path);
-                IReadOnlyList<StorageFile> files = await folder.GetFilesAsync(CommonFileQuery.OrderByName, 0, 5);
+                IReadOnlyList<StorageFile> files = await folder.GetFilesAsync(CommonFileQuery.OrderByName);
                 TotalFileNumber = files.Count;
+                StartToggle.IsEnabled = false;
+
 
                 queue = new PCQueue(stats.MaxThreads);
-
                 for (int i = 0; i < files.Count; i++) {
                     int ii = i;
                     string text = await FileIO.ReadTextAsync(files[ii]);
@@ -67,7 +66,7 @@ namespace Multithread_Prime {
                     });
                 }
 
-                StartToggle.IsEnabled = false;
+                // False not to wait for workers to finish
                 queue.Shutdown(false);
             } catch(Exception ex) {
                 await new MessageDialog(ex.Message).ShowAsync();
